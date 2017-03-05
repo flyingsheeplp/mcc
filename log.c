@@ -1,3 +1,9 @@
+/*
+*    Micro C compiler
+*    Copyright(c) flyingsheep.lp@gmail.com
+*
+*/
+
 #include <stdarg.h>
 #include <stdio.h>
 #include "log.h"
