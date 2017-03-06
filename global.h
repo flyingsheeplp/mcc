@@ -21,14 +21,20 @@ enum{
 	KW_RETURN,
 	KW_SIZEOF,
 
-	TK_LPAREN,
-	TK_RPAREN,
-	TK_LBRACKET,
-	TK_RBRACKET,
-	TK_LBRACE,
-	TK_RBRACE,
-
-	
+	TK_LPAREN,  // (
+	TK_RPAREN,  // )
+	TK_LBRACKET, // [
+	TK_RBRACKET, // ]
+	TK_LBRACE,   // {
+	TK_RBRACE,   // }
+	TK_PLUS,  // +
+	TK_MINUS, // -
+	TK_STAR, // *
+	TK_DIVIDE, // /
+	TK_MOD, // %
+	TK_EQ, // ==
+	TK_NEQ, // !=
+	TK_LT, // <
 
 
 }

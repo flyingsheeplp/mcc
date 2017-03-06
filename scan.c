@@ -6,10 +6,6 @@
 
 #include <stdio.h>
 
-enum{
-
-};
-
 int get_token()
 {
 
