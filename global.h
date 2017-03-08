@@ -7,7 +7,10 @@
 #ifndef MCC_GLOBAL_H
 #define MCC_GLOBAL_H
 
-enum{
+
+#define MAX_STRING_SIZE 64
+
+typedef enum{
 	KW_CHAR,
 	KW_SHORT,
 	KW_INT,
@@ -35,8 +38,19 @@ enum{
 	TK_EQ, // ==
 	TK_NEQ, // !=
 	TK_LT, // <
+	TK_LE, // <=
+	TK_GT, // >
+	TK_GE, // >=
+	TK_ASSIGN, // =
+	TK_COMMA, // ,
+	TK_SEMICOLON, // ;
+	TK_ELLIPSIS, // ...
+	TK_DOT, // .
+	TK_POINTSTO, // ->
 
-
-}
+	TK_CINT,  // integer constant
+	TK_CCHAR, // char constant
+	TK_CSTR,  // C style string constant
+}MCC_TOKEN;
 
 #endif
