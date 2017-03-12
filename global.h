@@ -7,6 +7,8 @@
 #ifndef MCC_GLOBAL_H
 #define MCC_GLOBAL_H
 
+#define DEBUG_SCANNER 1
+
 
 #define MAX_STRING_SIZE 64
 
@@ -24,6 +26,7 @@ typedef enum{
 	KW_RETURN,
 	KW_SIZEOF,
 
+	TK_ID,
 	TK_LPAREN,  // (
 	TK_RPAREN,  // )
 	TK_LBRACKET, // [
@@ -35,6 +38,7 @@ typedef enum{
 	TK_STAR, // *
 	TK_DIVIDE, // /
 	TK_MOD, // %
+	TK_NEG, // !
 	TK_EQ, // ==
 	TK_NEQ, // !=
 	TK_LT, // <
@@ -51,6 +55,8 @@ typedef enum{
 	TK_CINT,  // integer constant
 	TK_CCHAR, // char constant
 	TK_CSTR,  // C style string constant
+
+	TK_EOF    //End of file
 }MCC_TOKEN;
 
 #endif
