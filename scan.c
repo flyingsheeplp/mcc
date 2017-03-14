@@ -12,12 +12,13 @@
 #include "global.h"
 #include "log.h"
 
-extern FILE* f;
-
 #define isBlank(c) ((c) == ' ' || (c) == '\t' || (c) == '\n')
 #define isEOF(c) ((c) == EOF)
 
-char savedTokenStr[255] = {0};
+static char savedTokenStr[255] = {0};
+
+//debug
+static int saved = 0;
 
 int line = 0;
 int pos = 0;
@@ -131,7 +132,7 @@ struct kw_token{
 };
 
 
-static MCC_TOKEN parseId(int first)
+static MCC_TOKEN scanId(int first)
 {
 	MCC_TOKEN t = TK_ID;
 	int i = 0;
@@ -151,10 +152,11 @@ static MCC_TOKEN parseId(int first)
 		}
 	}
 
+	saved = 1;
 	return t;
 }
 
-static void parseNumber(int first)
+static void scanNumber(int first)
 {
 	int i = 0;
 
@@ -167,12 +169,28 @@ static void parseNumber(int first)
 
 	savedTokenStr[i] = 0;
 	pushBackChar(c);
+
+	saved = 1;
 }
+
+static void scanStringLiteral(char l)
+{
+	char c;
+	int i=0;
+	while((c=nextChar()) != l)
+		savedTokenStr[i++] = c;
+
+	savedTokenStr[i] = 0;
+
+	saved = 1;
+}
+
 
 MCC_TOKEN scanToken()
 {
 	MCC_TOKEN t;
 
+	saved = 0;
 	skipBlank();
 
 	char c = nextChar();
@@ -182,10 +200,10 @@ MCC_TOKEN scanToken()
 		case 'n':case 'o':case 'p':case 'q':case 'r':case 's':case 't':case 'u':case 'v':case 'w':case 'x':case 'y':case 'z':
 		case 'A':case 'B':case 'C':case 'D':case 'E':case 'F':case 'G':case 'H':case 'I':case 'J':case 'K':case 'L':case 'M':
 		case 'N':case 'O':case 'P':case 'Q':case 'R':case 'S':case 'T':case 'U':case 'V':case 'W':case 'X':case 'Y':case 'Z':
-			t = parseId(c);
+			t = scanId(c);
 			break;
 		case '0':case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9':
-			parseNumber(c);
+			scanNumber(c);
 			t = TK_CINT;
 			break;
 		case '(':
@@ -287,6 +305,15 @@ MCC_TOKEN scanToken()
 		case ';':
 			t = TK_SEMICOLON; // ;
 			break;
+
+		case '\'':
+			scanStringLiteral('\'');
+			t = TK_CCHAR;
+			break;
+		case '\"':
+			scanStringLiteral('\"');
+			t = TK_CSTR;
+			break;
 		case EOF:
 			t = TK_EOF;
 			break;
@@ -296,7 +323,10 @@ MCC_TOKEN scanToken()
 	}
 
 #if DEBUG_SCANNER
-	printf("%s ",kwArray[t]);
+	if(saved)
+		printf("%s[%s] ",kwArray[t],savedTokenStr);
+	else
+		printf("%s ",kwArray[t]);
 #endif
 
 	return t;

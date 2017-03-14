@@ -59,4 +59,17 @@ typedef enum{
 	TK_EOF    //End of file
 }MCC_TOKEN;
 
+//source file
+extern FILE* f;
+
+//processing position
+extern int line;
+extern int pos;
+extern char* kwArray[];
+
+//Scan
+MCC_TOKEN scanToken();
+
+//Parse
+
 #endif

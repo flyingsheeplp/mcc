@@ -8,7 +8,6 @@
 #include "global.h"
 #include "log.h"
 FILE* f = NULL;
-MCC_TOKEN scanToken();
 
 static void usage(){
 	printf("mcc [filename]\n");

@@ -7,10 +7,18 @@ struct s
 	char c;
 };
 
+char* string = "hello world!\n";
+
+char t = 'E';
+
 
 int func(int a, struct s* s)
 {
-	a = s->a;
+	if(a>0){
+		a = s->a - s->c;
+	}else{
+		a = s->a;
+	}
 
 	return 1;
 }
