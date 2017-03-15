@@ -71,5 +71,11 @@ extern char* kwArray[];
 MCC_TOKEN scanToken();
 
 //Parse
-
+#define MAX_CHILDREN_NR 3
+#define MAX_ATTR_NR  3
+struct AstNode{
+	struct AstNode* next;
+	struct AstNode* child[MAX_CHILDREN_NR];
+	int attr[MAX_ATTR_NR];
+};
 #endif

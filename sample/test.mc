@@ -11,6 +11,7 @@ char* string = "hello world!\n";
 
 char t = 'E';
 
+a.b = ...;
 
 int func(int a, struct s* s)
 {

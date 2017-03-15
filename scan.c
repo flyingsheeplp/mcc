@@ -194,6 +194,9 @@ MCC_TOKEN scanToken()
 	skipBlank();
 
 	char c = nextChar();
+	char c1;
+
+	int lvl = 0;
 
 	switch(c){
 		case 'a':case 'b':case 'c':case 'd':case 'e':case 'f':case 'g':case 'h':case 'i':case 'j':case 'k':case 'l':case 'm':
@@ -255,11 +258,15 @@ MCC_TOKEN scanToken()
 		// dot or ellipsis
 		case '.':
 			if((c=nextChar()) == '.'){
-
+				lvl++;
+				if((c1=nextChar()) == '.')
+					t = TK_ELLIPSIS;
 			}
 			else{
 				t = TK_DOT;
 				pushBackChar(c);
+				if(lvl)
+					pushBackChar(c1);
 			}
 			break;
 
