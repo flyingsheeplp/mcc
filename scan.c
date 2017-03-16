@@ -15,7 +15,7 @@
 #define isBlank(c) ((c) == ' ' || (c) == '\t' || (c) == '\n')
 #define isEOF(c) ((c) == EOF)
 
-static char savedTokenStr[255] = {0};
+char savedTokenStr[255] = {0};
 
 //debug
 static int saved = 0;

@@ -69,6 +69,7 @@ extern char* kwArray[];
 
 //Scan
 MCC_TOKEN scanToken();
+extern char savedTokenStr[];
 
 //Parse
 #define MAX_CHILDREN_NR 3
