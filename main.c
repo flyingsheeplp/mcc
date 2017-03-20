@@ -30,8 +30,7 @@ int main(int argc, char** argv)
 	}
 
 
-	while(scanToken() != TK_EOF);
-	printf("\n");
+	parse();
 
 	return 0;
 }

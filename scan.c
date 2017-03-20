@@ -71,12 +71,14 @@ char* kwArray[] = {
 char nextChar()
 {
 	char c = fgetc(f);
+	pos++;
 	return c;
 }
 
 void pushBackChar(int c)
 {
 	int r = ungetc(c,f);
+	pos--;
 }
 
 
@@ -87,6 +89,7 @@ static void skipBlank()
 		c = nextChar();
 		if(c ==  '\n'){
 			line++;
+			pos = 0;
 #if DEBUG_SCANNER
 			printf("\n");
 #endif

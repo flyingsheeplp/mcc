@@ -6,6 +6,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "log.h"
 
 void logd(char* fmt,...)
@@ -21,7 +22,8 @@ void loge(char* fmt,...)
 {
 	va_list arg;
 	va_start(arg,fmt);
-	fprintf(stderr,fmt,arg);
+	printf(fmt,arg);
 	va_end(arg);
-	fprintf(stderr,"\n");
+	printf("\n");
+	exit(1);
 }

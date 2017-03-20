@@ -74,9 +74,23 @@ extern char savedTokenStr[];
 //Parse
 #define MAX_CHILDREN_NR 3
 #define MAX_ATTR_NR  3
+
+typedef enum{
+	PROC_DECL,
+}NodeType;
+
+/*
+	Procedure Attributes:  NR(Params) | 
+
+*/
+
 struct AstNode{
+	NodeType type;
 	struct AstNode* next;
 	struct AstNode* child[MAX_CHILDREN_NR];
 	int attr[MAX_ATTR_NR];
 };
+
+
+struct AstNode* parse();
 #endif
