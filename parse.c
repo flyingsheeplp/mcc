@@ -4,6 +4,7 @@
 #include "log.h"
 
 #define advance nextToken
+#define skip nextToken
 
 static MCC_TOKEN cur;
 
@@ -21,39 +22,59 @@ static void match(MCC_TOKEN t)
 		return;
 	}
 
-	printf("\nexcept %s at line:%d[%d]\n",kwArray[t],line,pos);
+	printf("\ncur [%s] except %s at line:%d[%d]\n",kwArray[cur],kwArray[t],line,pos);
 	exit(1);
+}
+
+static void structSpec(){
+
 }
 
 static void typeSpec()
 {
-	advance();
-	match(KW_INT);
-
-	printf("\nCUR in typeSpec:[%s]\n",kwArray[cur]);
+    switch(nextToken()){
+        case KW_INT:
+            match(KW_INT);
+            break;
+        case KW_SHORT:
+            match(KW_SHORT);
+            break;
+        case KW_CHAR:
+            match(KW_CHAR);
+            break;
+        case KW_STRUCT:
+            match(KW_STRUCT);
+            structSpec();
+            break;
+        default:
+            printf("type meets unexpected token:[%s]\n",kwArray[cur]);
+            exit(1);
+    }
 }
 
 static void declarator()
 {
 	match(TK_ID);
-
-	printf("\nCUR in declarator:[%s]\n",kwArray[cur]);
 }
 
 static void initializer()
 {
-	printf("in initializer\n");
 	advance();
 	match(TK_CINT);
 }
 
-void compoundStmt()
+static struct AstNode* compoundStmt()
 {
+    struct AstNode* csn = malloc(sizeof(struct AstNode));
+
+
 	while(cur != TK_RBRACE){
 		advance();
 		if(cur == TK_EOF)
 			printf("compoundStmt error\n");
 	}
+
+    return csn;
 }
 
 
@@ -62,24 +83,30 @@ struct AstNode* externalDecl()
 	struct AstNode* e = malloc(sizeof(struct AstNode));
 
 	typeSpec();
+    declarator();
 
 	while(cur != TK_EOF){
-		declarator();
-
-		if(cur == TK_LBRACE){
-		 	compoundStmt();
-		 	break;
-		}else if(cur == TK_ASSIGN){
-			printf("ASSIGN\n");
-			initializer();
-		}else if(cur == TK_COMMA){
-			advance();
-		}else if(cur == TK_SEMICOLON){
-			advance();
-			break;
-		}else if(cur == TK_EOF){
-			printf("externalDecl error\n");
-		}
+		switch(cur){
+            case TK_LBRACE:
+                compoundStmt();
+                break;
+            case TK_ASSIGN:
+                initializer();
+                continue;
+            case TK_COMMA:
+                skip();
+                declarator();
+                continue;
+            case TK_SEMICOLON:
+                break;
+            case TK_EOF:
+                printf("externalDecl error\n");
+                exit(1);
+            default:
+                printf("unexpect token: [%s] \n",kwArray[cur]);
+                exit(1);
+        }
+        break;
 	}
 
 	return e;
@@ -99,9 +126,8 @@ struct AstNode* translationUnit()
 
 struct AstNode* parse()
 {
-	printf("line:%d pos:%d\n",line,pos);
     struct AstNode* programAst = translationUnit();
-    printf("parse success!\n");
+    printf("\n\nparse success!\n");
 }
 
 
