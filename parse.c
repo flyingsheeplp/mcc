@@ -30,9 +30,9 @@ static void structSpec(){
 
 }
 
-static void typeSpec()
+static void typeSpec(struct AstNode* n)
 {
-    switch(nextToken()){
+    switch(cur){
         case KW_INT:
             match(KW_INT);
             break;
@@ -77,18 +77,24 @@ static struct AstNode* compoundStmt()
     return csn;
 }
 
+static void procBody(struct AstNode* parent)
+{
+    parent->type = PROC_DECL;
+}
 
 struct AstNode* externalDecl()
 {
 	struct AstNode* e = malloc(sizeof(struct AstNode));
 
-	typeSpec();
-    declarator();
+	typeSpec(e);
+    struct AstNode* d = declarator();
+
+    if(cur == TK_LPAREN)
 
 	while(cur != TK_EOF){
 		switch(cur){
             case TK_LBRACE:
-                compoundStmt();
+                procBody(e);
                 break;
             case TK_ASSIGN:
                 initializer();
@@ -98,6 +104,7 @@ struct AstNode* externalDecl()
                 declarator();
                 continue;
             case TK_SEMICOLON:
+                skip();
                 break;
             case TK_EOF:
                 printf("externalDecl error\n");
@@ -114,6 +121,7 @@ struct AstNode* externalDecl()
 
 struct AstNode* translationUnit()
 {
+    advance();
     struct AstNode* n = externalDecl();
     struct AstNode* s = n;
     while(cur != TK_EOF){
