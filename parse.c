@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "global.h"
 #include "log.h"
 
@@ -26,11 +27,21 @@ static void match(MCC_TOKEN t)
 	exit(1);
 }
 
-static void structSpec(){
-
+static void structSpec()
+{
+    match(TK_ID);
+    char* id = strdup(savedTokenStr);
+    if(cur == TK_LBRACE){
+        while(cur != TK_RBRACE){
+            typeSpec();
+            declarator();
+        }
+    }else{
+        match(TK_SEMICOLON);
+    }
 }
 
-static void typeSpec(struct AstNode* n)
+static void typeSpec()
 {
     switch(cur){
         case KW_INT:
@@ -54,6 +65,9 @@ static void typeSpec(struct AstNode* n)
 
 static void declarator()
 {
+    while(cur == TK_STAR){
+        advance();
+    }
 	match(TK_ID);
 }
 
@@ -77,6 +91,21 @@ static struct AstNode* compoundStmt()
     return csn;
 }
 
+static struct AstNode* procParamList()
+{
+    struct AstNode* p = pa = NULL;
+    while(cur != TK_RPAREN){
+        if(!p){
+            p = pa = paramDecl();
+        }else{
+            pa->next = paramDecl();
+            pa = pa->next;
+        }
+    }
+
+    return p;
+}
+
 static void procBody(struct AstNode* parent)
 {
     parent->type = PROC_DECL;
@@ -86,10 +115,17 @@ struct AstNode* externalDecl()
 {
 	struct AstNode* e = malloc(sizeof(struct AstNode));
 
-	typeSpec(e);
+	typeSpec();
     struct AstNode* d = declarator();
 
-    if(cur == TK_LPAREN)
+    if(cur == TK_SEMICOLON){
+        return NULL;
+    }
+
+    if(cur == TK_LPAREN){
+        advance();
+        procParamList();
+    }
 
 	while(cur != TK_EOF){
 		switch(cur){
@@ -126,7 +162,8 @@ struct AstNode* translationUnit()
     struct AstNode* s = n;
     while(cur != TK_EOF){
         s->next = externalDecl();
-        s = s->next;
+        if(s->next)
+            s = s->next;
     }
 
     return n;
