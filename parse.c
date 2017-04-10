@@ -5,9 +5,12 @@
 #include "log.h"
 
 #define advance nextToken
-#define skip nextToken
+#define skip match
 
 static MCC_TOKEN cur;
+
+static void typeSpec();
+static struct AstNode* declarator();
 
 static MCC_TOKEN nextToken()
 {
@@ -29,15 +32,20 @@ static void match(MCC_TOKEN t)
 
 static void structSpec()
 {
+	 printf("in structSpec\n");
+	char* id = strdup(savedTokenStr);
     match(TK_ID);
-    char* id = strdup(savedTokenStr);
     if(cur == TK_LBRACE){
+		//jump over '{'
+		advance();
         while(cur != TK_RBRACE){
             typeSpec();
             declarator();
+			//jump over ';'
+			advance();
         }
-    }else{
-        match(TK_SEMICOLON);
+		//jump over '}'
+		advance();
     }
 }
 
@@ -63,12 +71,13 @@ static void typeSpec()
     }
 }
 
-static void declarator()
+static struct AstNode* declarator()
 {
     while(cur == TK_STAR){
         advance();
     }
 	match(TK_ID);
+	return NULL;
 }
 
 static void initializer()
@@ -83,18 +92,28 @@ static struct AstNode* compoundStmt()
 
 
 	while(cur != TK_RBRACE){
-		advance();
+        advance();
 		if(cur == TK_EOF)
 			printf("compoundStmt error\n");
 	}
-
+	
+	skip(TK_RBRACE);
     return csn;
+}
+
+static struct AstNode* paramDecl()
+{
+	 printf("in paramDecl\n");
+	 typeSpec();
+	 declarator();
+	 return NULL;
 }
 
 static struct AstNode* procParamList()
 {
-    struct AstNode* p = pa = NULL;
-    while(cur != TK_RPAREN){
+	 struct AstNode* p = NULL;
+	 struct AstNode* pa = NULL;
+	 while(cur != TK_RPAREN){
         if(!p){
             p = pa = paramDecl();
         }else{
@@ -102,13 +121,65 @@ static struct AstNode* procParamList()
             pa = pa->next;
         }
     }
+	 //jump over ')'
+	skip(TK_RPAREN);
 
     return p;
+}
+
+static struct AstNode* ifStmt()
+{
+     match(KW_IF);
+     skip(TK_LPAREN);
+     return NULL;
+}
+
+static struct AstNode* forStmt()
+{
+     //TODO:
+     return NULL;
+}
+
+static struct AstNode* expression()
+{
+     return NULL;
+}
+
+static struct AstNode* statment()
+{
+     switch(cur){
+     case KW_IF:
+          ifStmt();
+          break;
+     case KW_FOR:
+          forStmt();
+          break;
+     case KW_CONTINUE:
+          skip(KW_CONTINUE);
+          break;
+     case KW_BREAK:
+          skip(KW_BREAK);
+          break;
+     case KW_RETURN:
+          skip(KW_RETURN);
+          if(cur != TK_SEMICOLON)
+               expression();
+          else
+               skip(TK_SEMICOLON);
+          break;
+     }
+
+     return NULL;
 }
 
 static void procBody(struct AstNode* parent)
 {
     parent->type = PROC_DECL;
+	while(cur != TK_RBRACE){
+         statment();
+    }
+
+    skip(TK_RBRACE);
 }
 
 struct AstNode* externalDecl()
@@ -116,11 +187,12 @@ struct AstNode* externalDecl()
 	struct AstNode* e = malloc(sizeof(struct AstNode));
 
 	typeSpec();
-    struct AstNode* d = declarator();
 
     if(cur == TK_SEMICOLON){
+		skip(TK_SEMICOLON);
         return NULL;
     }
+    struct AstNode* d = declarator();
 
     if(cur == TK_LPAREN){
         advance();
@@ -130,17 +202,18 @@ struct AstNode* externalDecl()
 	while(cur != TK_EOF){
 		switch(cur){
             case TK_LBRACE:
+				skip(TK_LBRACE);
                 procBody(e);
                 break;
             case TK_ASSIGN:
                 initializer();
                 continue;
             case TK_COMMA:
-                skip();
+                skip(TK_COMMA);
                 declarator();
                 continue;
             case TK_SEMICOLON:
-                skip();
+                skip(TK_SEMICOLON);
                 break;
             case TK_EOF:
                 printf("externalDecl error\n");
