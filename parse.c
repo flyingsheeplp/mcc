@@ -40,7 +40,7 @@ static void skipIfMatch(MCC_TOKEN t)
 
 static void structSpec()
 {
-	 printf("in structSpec\n");
+	printf("in structSpec\n");
 	char* id = strdup(savedTokenStr);
     match(TK_ID);
     if(cur == TK_LBRACE){
@@ -135,6 +135,11 @@ static struct AstNode* procParamList()
     return p;
 }
 
+static struct AstNode* expression()
+{
+     
+}
+
 static struct AstNode* ifStmt()
 {
      match(KW_IF);
@@ -147,20 +152,32 @@ static struct AstNode* ifStmt()
      return NULL;
 }
 
-static struct AstNode* forStmt()
+static struct AstNode* whileStmt()
 {
-     //TODO:
+     skip(KW_WHILE);
+     skip(TK_LPAREN);
+     expression();
+     skip(TK_RPAREN);
+     statment();
      return NULL;
 }
 
 static struct AstNode* compoundStatment()
 {
+     skip(TK_LBRACE);
      
+     skip(TK_RBRACE);
      return NULL;
 }
 
-static struct AstNode* expression()
+static struct AstNode* expStatment()
 {
+     if(cur == TK_SEMICOLON)
+          skip(TK_SEMICOLON);
+     else{
+          expression();
+          skip(TK_SEMICOLON);
+     }
      return NULL;
 }
 
@@ -170,8 +187,8 @@ static struct AstNode* statment()
      case KW_IF:
           ifStmt();
           break;
-     case KW_FOR:
-          forStmt();
+     case KW_WHILE:
+          whileStmt();
           break;
      case KW_CONTINUE:
           skip(KW_CONTINUE);
@@ -189,6 +206,9 @@ static struct AstNode* statment()
      case TK_LBRACE:
           compoundStatment();
           break;
+     default:
+          expStatment();
+          break;
      }
 
      return NULL;
@@ -196,13 +216,9 @@ static struct AstNode* statment()
 
 static void procBody(struct AstNode* parent)
 {
-     printf("in ProcBody\n");
+    printf("in ProcBody\n");
     parent->type = PROC_DECL;
-	while(cur != TK_RBRACE){
-         statment();
-    }
-
-    skip(TK_RBRACE);
+    compoundStatment();
 }
 
 struct AstNode* externalDecl()

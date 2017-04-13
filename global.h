@@ -20,7 +20,7 @@ typedef enum{
 	KW_STRUCT,
 	KW_IF,
 	KW_ELSE,
-	KW_FOR,
+	KW_WHILE,
 	KW_CONTINUE,
 	KW_BREAK,
 	KW_RETURN,
