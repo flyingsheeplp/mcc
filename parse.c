@@ -82,16 +82,25 @@ static void typeSpec()
 static struct AstNode* declarator()
 {
     while(cur == TK_STAR){
-        advance();
+        skip(TK_STAR);
     }
-	match(TK_ID);
+
+	skip(TK_ID);
+    while(cur == TK_LBRACKET){
+         skip(TK_LBRACKET);
+         if(cur == TK_RBRACKET)
+              skip(TK_RBRACKET);
+         else{
+              skip(TK_CINT);
+              skip(TK_RBRACKET);
+         }
+    }
 	return NULL;
 }
 
 static void initializer()
 {
-	advance();
-	match(TK_CINT);
+     assignExpr();
 }
 
 static struct AstNode* compoundStmt()
@@ -135,9 +144,15 @@ static struct AstNode* procParamList()
     return p;
 }
 
-static struct AstNode* expression()
+static void expQ()
 {
      
+}
+
+static struct AstNode* expression()
+{
+     assignExp();
+     expQ();
 }
 
 static struct AstNode* ifStmt()

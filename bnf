@@ -55,8 +55,7 @@ jump_stat :
             | 'return' exp ';'
             | 'return'  ';'
 
-exp         : assignment_exp
-            | exp ',' assignment_exp
+exp         : assignment_exp {',' assignment_exp}*
 
 assignment_exp : 
             | equality_exp
