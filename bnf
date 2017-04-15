@@ -7,7 +7,7 @@ external_decl:
 function_definition:  type_spec declarator '(' {param_decl}* ')' { compound_stat | ';' }
 
 
-decl: type_spec declarator init_declarator_list ';''
+decl: type_spec init_declarator_list ';''
 
 type_spec: 'void' | 'char' | 'int' | struct_spec
 
@@ -17,8 +17,7 @@ struct_spec:
 
 init_declarator_list    : init_declarator {',' init_declarator}*
 
-init_declarator     : declarator
-            | declarator '=' initializer
+init_declarator     : declarator {'=' initializer}
 
 
 declarator      : <TK_STAR>* direct_declarator
@@ -73,7 +72,6 @@ mult_exp :  unary_exp { '*' unary_exp | '/' unary_exp | '%' unary_exp }*
 
 
 unary_exp: postfix_exp
-            |  & unary_exp
             |  * unary_exp
             |  + unary_exp
             |  - unary_exp

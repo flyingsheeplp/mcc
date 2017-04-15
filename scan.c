@@ -127,7 +127,7 @@ struct kw_token{
 	{KW_STRUCT,"struct"},
 	{KW_IF, "if"},
 	{KW_ELSE, "else"},
-	{KW_FOR, "while"},
+	{KW_WHILE, "while"},
 	{KW_CONTINUE, "continue"},
 	{KW_BREAK, "break"},
 	{KW_RETURN, "return"},

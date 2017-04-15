@@ -11,6 +11,10 @@ static MCC_TOKEN cur;
 
 static void typeSpec();
 static struct AstNode* declarator();
+static struct AstNode* statment();
+static struct AstNode* expression();
+static struct AstNode* assignExpr();
+static struct AstNode* decl();
 
 static MCC_TOKEN nextToken()
 {
@@ -45,15 +49,15 @@ static void structSpec()
     match(TK_ID);
     if(cur == TK_LBRACE){
 		//jump over '{'
-		advance();
+		skip(TK_LBRACE);
         while(cur != TK_RBRACE){
             typeSpec();
             declarator();
 			//jump over ';'
-			advance();
+			skip(TK_SEMICOLON);
         }
 		//jump over '}'
-		advance();
+		skip(TK_RBRACE);
     }
 }
 
@@ -69,6 +73,9 @@ static void typeSpec()
         case KW_CHAR:
             match(KW_CHAR);
             break;
+        case KW_VOID:
+             match(KW_VOID);
+             break;
         case KW_STRUCT:
             match(KW_STRUCT);
             structSpec();
@@ -103,21 +110,6 @@ static void initializer()
      assignExpr();
 }
 
-static struct AstNode* compoundStmt()
-{
-    struct AstNode* csn = malloc(sizeof(struct AstNode));
-
-
-	while(cur != TK_RBRACE){
-        advance();
-		if(cur == TK_EOF)
-			printf("compoundStmt error\n");
-	}
-	
-	skip(TK_RBRACE);
-    return csn;
-}
-
 static struct AstNode* paramDecl()
 {
 	 printf("in paramDecl\n");
@@ -144,15 +136,150 @@ static struct AstNode* procParamList()
     return p;
 }
 
-static void expQ()
+static struct AstNode* argumentExprList()
 {
+     assignExpr();
+     while(cur == TK_COMMA){
+          skip(TK_COMMA);
+          assignExpr();
+     }
+
+     return NULL;
+}
+
+static struct AstNode* primaryExpr()
+{
+     switch(cur){
+     case TK_ID:
+     case TK_CINT:
+     case TK_CCHAR:
+     case TK_CSTR:
+          skip(cur);
+          break;
+     case TK_LPAREN:
+          skip(TK_LPAREN);
+          expression();
+          skip(TK_RPAREN);
+          break;
+     default:
+          printf("error token in primary expression: %s\n",kwArray[cur]);
+          exit(1);
+     }
      
+     return NULL;
+}
+
+static struct AstNode* postfixExpr()
+{
+     primaryExpr();
+     while(1){
+          if(cur == TK_LBRACKET){
+               skip(TK_LBRACKET);
+               expression();
+               skip(TK_RBRACKET);
+          }else if(cur == TK_LPAREN){
+               skip(TK_LPAREN);
+               if(cur == TK_RPAREN)
+                    skip(TK_RPAREN);
+               else{
+                    expression();
+                    skip(TK_RPAREN);
+               }
+          }else if(cur == TK_DOT){
+               skip(TK_DOT);
+               match(TK_ID);
+          }else if(cur == TK_POINTSTO){
+               skip(TK_POINTSTO);
+               match(TK_ID);
+          }else{
+               break;
+          }
+     }
+
+     return NULL;
+}
+
+static struct AstNode* unaryExpr()
+{
+     switch(cur){
+     case TK_STAR:case TK_PLUS:case TK_MINUS:
+          skip(cur);
+          unaryExpr();
+          break;
+     case KW_SIZEOF:
+          skip(TK_LPAREN);
+          typeSpec();
+          skip(TK_RPAREN);
+          break;
+     default:
+          postfixExpr();
+          break;
+     }
+
+     return NULL;
+}
+
+static struct AstNode* mulExpr()
+{
+     unaryExpr();
+     while(cur == TK_STAR || cur == TK_DIVIDE || cur == TK_MOD){
+          skip(cur);
+          unaryExpr();
+     }
+     return NULL;
+}
+
+static struct AstNode* addExpr()
+{
+     mulExpr();
+     while(cur == TK_PLUS || cur == TK_MINUS){
+          skip(cur);
+          mulExpr();
+     }
+
+     return NULL;
+}
+
+static struct AstNode* relExpr()
+{
+     addExpr();
+     while(cur == TK_LT || cur == TK_LE || cur == TK_GT || cur == TK_GE){
+          skip(cur);
+          addExpr();
+     }
+
+     return NULL;
+}
+
+static struct AstNode* equalExpr()
+{
+     relExpr();
+     while(cur == TK_EQ || cur == TK_NEQ){
+          skip(cur);
+          relExpr();
+     }
+     return NULL;
+}
+
+static struct AstNode* assignExpr()
+{
+     equalExpr();
+     
+     if(cur == TK_ASSIGN){
+          skip(TK_ASSIGN);
+          assignExpr();
+     }
+     
+     return NULL;
 }
 
 static struct AstNode* expression()
 {
-     assignExp();
-     expQ();
+     assignExpr();
+     while(cur == TK_COMMA){
+          skip(TK_COMMA);
+          assignExpr();
+     }
 }
 
 static struct AstNode* ifStmt()
@@ -180,7 +307,13 @@ static struct AstNode* whileStmt()
 static struct AstNode* compoundStatment()
 {
      skip(TK_LBRACE);
-     
+     while(cur == KW_INT || cur == KW_CHAR || cur == KW_VOID || cur == KW_STRUCT){
+          decl();
+     }
+
+     while(cur != TK_RBRACE){
+          statment();
+     }
      skip(TK_RBRACE);
      return NULL;
 }
@@ -231,12 +364,31 @@ static struct AstNode* statment()
 
 static void procBody(struct AstNode* parent)
 {
-    printf("in ProcBody\n");
     parent->type = PROC_DECL;
     compoundStatment();
 }
 
-struct AstNode* externalDecl()
+static struct AstNode* initDeclList()
+{
+     if(cur == TK_ASSIGN){
+          skip(TK_ASSIGN);
+          initializer();
+     }
+
+     while(cur == TK_COMMA){
+          skip(TK_COMMA);
+          declarator();
+          if(cur == TK_ASSIGN){
+               skip(TK_ASSIGN);
+               initializer();
+          }
+     }
+
+     return NULL;
+}
+
+
+static struct AstNode* decl()
 {
 	struct AstNode* e = malloc(sizeof(struct AstNode));
 
@@ -253,31 +405,17 @@ struct AstNode* externalDecl()
         procParamList();
     }
 
-	while(cur != TK_EOF){
-		switch(cur){
-            case TK_LBRACE:
-				skip(TK_LBRACE);
-                procBody(e);
-                break;
-            case TK_ASSIGN:
-                initializer();
-                continue;
-            case TK_COMMA:
-                skip(TK_COMMA);
-                declarator();
-                continue;
-            case TK_SEMICOLON:
-                skip(TK_SEMICOLON);
-                break;
-            case TK_EOF:
-                printf("externalDecl error\n");
-                exit(1);
-            default:
-                printf("unexpect token: [%s] \n",kwArray[cur]);
-                exit(1);
-        }
-        break;
-	}
+	
+	switch(cur){
+        case TK_LBRACE:
+            procBody(e);
+            break;
+        
+        default:
+            initDeclList();
+            skip(TK_SEMICOLON);
+            break;
+    }
 
 	return e;
 }
@@ -285,12 +423,10 @@ struct AstNode* externalDecl()
 struct AstNode* translationUnit()
 {
     advance();
-    struct AstNode* n = externalDecl();
+    struct AstNode* n = decl();
     struct AstNode* s = n;
     while(cur != TK_EOF){
-        s->next = externalDecl();
-        if(s->next)
-            s = s->next;
+         decl();
     }
 
     return n;
